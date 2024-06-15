@@ -1,38 +1,5 @@
 from pydantic import BaseModel
-from typing import List
-from datetime import datetime
-
-
-class RoleBase(BaseModel):
-    name: str
-
-
-class RoleCreate(RoleBase):
-    pass
-
-
-class RoleSch(RoleBase):
-    id: int
-
-    class Config:
-        orm_mode = True
-
-
-class UserBase(BaseModel):
-    username: str
-
-
-class UserCreate(UserBase):
-    password: str
-    role_id: int
-
-
-class UserSch(UserBase):
-    id: int
-    role: RoleSch
-
-    class Config:
-        orm_mode = True
+from typing import List, Optional
 
 
 class BeerBase(BaseModel):
@@ -45,25 +12,69 @@ class BeerCreate(BeerBase):
     pass
 
 
-class BeerSch(BeerBase):
+class Beer(BeerBase):
     id: int
 
     class Config:
         orm_mode = True
 
 
-class OrderBase(BaseModel):
+class OrderItemBase(BaseModel):
+    beerId: int
     quantity: int
 
 
-class OrderCreate(OrderBase):
-    beers: List[int]
+class OrderItemCreate(OrderItemBase):
+    pass
 
 
-class OrderSch(OrderBase):
+class OrderItem(OrderItemBase):
     id: int
-    timestamp: datetime
-    beers: List[BeerSch]
+
+    class Config:
+        orm_mode = True
+
+
+class OrderCreate(BaseModel):
+    items: List[OrderItemCreate]
+
+
+class OrderSch(BaseModel):
+    id: Optional[int] = None
+    items: List[OrderItem]
+
+    class Config:
+        orm_mode = True
+
+
+class RoleBase(BaseModel):
+    name: str
+
+
+class RoleCreate(RoleBase):
+    pass
+
+
+class Role(RoleBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+
+class UserBase(BaseModel):
+    username: str
+    email: str
+
+
+class UserCreate(UserBase):
+    password: str
+    role_id: int
+
+
+class User(UserBase):
+    id: int
+    role_id: int
 
     class Config:
         orm_mode = True

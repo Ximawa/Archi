@@ -1,17 +1,30 @@
 import React from "react";
-import "./App.css";
-import BeerList from "./components/Beerlist";
-import NewBeerForm from "./components/NewBeerForm";
-import RecommendBeers from "./components/RecommendBeers";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import Beerlist from "./components/Beerlist";
+import OrderPage from "./components/OrderPage";
+import OrderForm from "./components/OrderForm";
 
-function App() {
+const App = () => {
   return (
-    <div className="App">
-      <NewBeerForm />
-      <BeerList />
-      <RecommendBeers />
-    </div>
+    <Router>
+      <div>
+        <nav>
+          <ul>
+            <li>
+              <a href="/">Liste des bières</a>
+            </li>
+            <li>
+              <a href="/orders">Passer une commande</a>
+            </li>
+          </ul>
+        </nav>
+        <Routes>
+          <Route path="/" exact element={<Beerlist />} />
+          <Route path="/orders" element={<OrderForm />} />
+        </Routes>
+      </div>
+    </Router>
   );
-}
+};
 
 export default App;

@@ -1,22 +1,22 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from .models import Beer, Order, Role, User, SessionLocal
-from .schemas import *
+from sqlalchemy import create_engine
+from app.models import User, Beer as BeerModel, Role, Order, OrderItem, SessionLocal, Base, engine
+from app.schemas import UserCreate, User, BeerCreate, Beer, RoleCreate, Role, OrderItemBase, OrderSch, OrderCreate
 from passlib.context import CryptContext
 from typing import List
 
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-origins = ["*"]  # Allow all origins
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],  # Allows all origins
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
 )
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -38,7 +38,7 @@ def get_db():
         db.close()
 
 
-@app.post("/roles/", response_model=RoleSch)
+@app.post("/roles", response_model=Role)
 def create_role(role: RoleCreate, db: Session = Depends(get_db)):
     db_role = Role(name=role.name)
     db.add(db_role)
@@ -47,16 +47,16 @@ def create_role(role: RoleCreate, db: Session = Depends(get_db)):
     return db_role
 
 
-@app.get("/roles/", response_model=List[RoleSch])
+@app.get("/roles", response_model=List[Role])
 def read_roles(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     roles = db.query(Role).offset(skip).limit(limit).all()
     return roles
 
 
-@app.post("/users/", response_model=UserSch)
+@app.post("/users", response_model=User)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     hashed_password = get_password_hash(user.password)
-    db_user = User(username=user.username,
+    db_user = User(username=user.username, email=user.email,
                    hashed_password=hashed_password, role_id=user.role_id)
     db.add(db_user)
     db.commit()
@@ -64,66 +64,84 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     return db_user
 
 
-@app.post("/beers/", response_model=BeerSch)
+@app.get("/users", response_model=List[User])
+def read_users(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+    users = db.query(User).offset(skip).limit(limit).all()
+    return users
+
+
+@app.post("/beers", response_model=Beer)
 def create_beer(beer: BeerCreate, db: Session = Depends(get_db)):
-    db_beer = Beer(name=beer.name, stock=beer.stock, min_stock=beer.min_stock)
+    db_beer = BeerModel(name=beer.name, stock=beer.stock,
+                        min_stock=beer.min_stock)
     db.add(db_beer)
     db.commit()
     db.refresh(db_beer)
     return db_beer
 
 
-@app.get("/beers/", response_model=List[BeerSch])
-def read_beers(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    beers = db.query(Beer).offset(skip).limit(limit).all()
+@app.get("/beers", response_model=List[Beer])
+def read_beers(db: Session = Depends(get_db)):
+    beers = db.query(BeerModel).all()
     return beers
 
 
-@app.put("/beers/{beer_id}", response_model=BeerSch)
-def update_beer(beer_id: int, beer: BeerCreate, db: Session = Depends(get_db)):
-    db_beer = db.query(Beer).filter(Beer.id == beer_id).first()
-    if db_beer is None:
+@app.post("/orders")
+def create_order(order_data: OrderCreate, db: Session = Depends(get_db)):
+    try:
+        new_order = create_order_in_db(order_data, db)
+        return new_order
+    except HTTPException as e:
+        raise e
+
+
+@app.post("/beers/{beer_id}/reduce_stock", response_model=Beer)
+def reduce_beer_stock(beer_id: int, db: Session = Depends(get_db)):
+    # Query the database for the beer
+    beer = db.query(BeerModel).filter(BeerModel.id == beer_id).first()
+
+    # Check if the beer exists
+    if beer is None:
         raise HTTPException(status_code=404, detail="Beer not found")
-    db_beer.name = beer.name
-    db_beer.stock = beer.stock
-    db_beer.min_stock = beer.min_stock
+
+    # Reduce the stock by 1
+    if beer.stock > 0:  # Ensure stock doesn't go negative
+        beer.stock -= 1
+        db.commit()
+        db.refresh(beer)
+    else:
+        raise HTTPException(status_code=400, detail="Beer stock is already 0")
+
+    return beer
+
+
+@app.get("/beers/low_stock", response_model=List[Beer])
+def read_low_stock_beers(db: Session = Depends(get_db)):
+    low_stock_beers = db.query(BeerModel).filter(
+        BeerModel.stock < BeerModel.min_stock).all()
+    return low_stock_beers
+
+
+def create_order_in_db(order_data: OrderCreate, db: Session):
+    # Create a new order instance. Assuming Order model has an 'id' and 'items' relationship
+    new_order = Order()
+    db.add(new_order)
     db.commit()
-    db.refresh(db_beer)
-    return db_beer
+    db.refresh(new_order)
 
+    for item in order_data.items:
+        # Check if the beer exists
+        beer = db.query(BeerModel).filter(BeerModel.id == item.beerId).first()
+        if not beer:
+            raise HTTPException(status_code=404, detail=f"Beer with ID {
+                                item.beerId} not found")
 
-@app.delete("/beers/{beer_id}", response_model=BeerSch)
-def delete_beer(beer_id: int, db: Session = Depends(get_db)):
-    db_beer = db.query(Beer).filter(Beer.id == beer_id).first()
-    if db_beer is None:
-        raise HTTPException(status_code=404, detail="Beer not found")
-    db.delete(db_beer)
+        # Create a new OrderItem and link it to the order and beer
+        order_item = OrderItem(order_id=new_order.id,
+                               beer_id=item.beerId, quantity=item.quantity)
+        db.add(order_item)
+
+    # Commit the order items to the database
     db.commit()
-    return db_beer
 
-
-@app.post("/orders/", response_model=OrderSch)
-def create_order(order: OrderCreate, db: Session = Depends(get_db)):
-    db_order = Order(quantity=order.quantity)
-    for beer_id in order.beers:
-        beer = db.query(Beer).filter(Beer.id == beer_id).first()
-        if beer is None:
-            raise HTTPException(status_code=404, detail=f"B {
-                                beer_id} not found")
-        db_order.beers.append(beer)
-    db.add(db_order)
-    db.commit()
-    db.refresh(db_order)
-    return db_order
-
-
-@app.get("/orders/", response_model=List[OrderSch])
-def read_orders(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    orders = db.query(Order).offset(skip).limit(limit).all()
-    return orders
-
-
-@app.get("/beers/recommend", response_model=List[BeerSch])
-def recommend_beers(db: Session = Depends(get_db)):
-    beers = db.query(Beer).filter(Beer.stock < Beer.min_stock).all()
-    return beers
+    return new_order  # Return the newly created order
