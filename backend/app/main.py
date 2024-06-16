@@ -1,11 +1,16 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
 from app.models import User, Beer as BeerModel, Role, Order, OrderItem, SessionLocal, Base, engine
 from app.schemas import UserCreate, User, BeerCreate, Beer, RoleCreate, Role, OrderItemBase, OrderSch, OrderCreate
 from passlib.context import CryptContext
 from typing import List
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from io import BytesIO
+from datetime import datetime
 
 Base.metadata.create_all(bind=engine)
 
@@ -129,6 +134,59 @@ def read_order(order_id: int, db: Session = Depends(get_db)):
         Order.id == order_id).first()
 
     return order
+
+
+@app.get("/order-pdf/{order_id}")
+def order_pdf(order_id: int, db: Session = Depends(get_db)):
+    order_data = db.query(Order).join(
+        OrderItem).filter(Order.id == order_id).first()
+    if not order_data:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    # Create a PDF document in memory
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+
+    # Add content to the PDF
+    c.setFont("Helvetica", 12)
+    created_at = order_data.created_at.strftime("%Y-%m-%d %H:%M:%S")
+    c.drawString(72, height - 50,
+                 f"Date de commande : {created_at}")
+    c.drawString(72, height - 72,
+                 f"Id de la commande: {order_data.id}")
+
+    # Draw a line to separate the header
+    c.line(72, height - 110, width - 72, height - 110)
+
+    # Assuming OrderItem has fields you want to display, add them here
+    y_position = height - 130
+    for item in order_data.items:
+        # Assuming 'items' is a relationship field on your Order model
+        beer = db.query(BeerModel).filter(BeerModel.id == item.beer_id).first()
+        if not beer:
+            raise HTTPException(status_code=404, detail=f"Beer with ID {
+                item.beer_id} not found")
+        item_name = beer.name
+        c.drawString(72, y_position, f"Item: {
+                     item_name} ---------------- Quantite: {item.quantity}")
+        y_position -= 20
+
+    # Finalize the PDF
+    c.showPage()
+    c.save()
+
+    # Move the buffer to the beginning so it can be read
+    buffer.seek(0)
+
+    # Return the PDF as a streaming response
+    return StreamingResponse(buffer, media_type='application/pdf')
+
+
+@app.get("/orders/all", response_model=List[OrderSch])
+def read_orders(db: Session = Depends(get_db)):
+    orders = db.query(Order).all()
+    return orders
 
 
 def create_order_in_db(order_data: OrderCreate, db: Session):

@@ -8,7 +8,16 @@ const OrderForm = () => {
   useEffect(() => {
     fetch("http://localhost:8000/beers/low_stock")
       .then((response) => response.json())
-      .then((data) => setRecommendedBeers(data))
+      .then((data) => {
+        setRecommendedBeers(data);
+        // Use `data` directly instead of `recommendedBeers` for immediate processing
+        const initialOrderItems = data.map((beer) => ({
+          beer_id: beer.id,
+          quantity: Math.max(beer.min_stock - beer.stock, 0),
+        }));
+
+        setOrderItems([...initialOrderItems, { beer_id: "", quantity: "" }]);
+      })
       .catch((error) =>
         console.error("Error fetching recommended beers:", error)
       );
@@ -22,11 +31,9 @@ const OrderForm = () => {
   const handleInputChange = (index, event) => {
     const values = [...orderItems];
     if (event.target.name === "beer_id") {
-      // Parse the beer_id as an integer, but fallback to the original string if parsing fails
       const beerIdValue = parseInt(event.target.value, 10);
       values[index].beer_id = isNaN(beerIdValue) ? "" : beerIdValue;
     } else {
-      // Parse the quantity as an integer, fallback to 0 if parsing fails
       const quantityValue = parseInt(event.target.value, 10);
       values[index].quantity = isNaN(quantityValue) ? 0 : quantityValue;
     }
@@ -81,6 +88,9 @@ const OrderForm = () => {
             value={item.beer_id}
             onChange={(event) => handleInputChange(index, event)}
           >
+            <option value="" disabled>
+              Select a beer
+            </option>
             <optgroup label="Bieres en stock bas">
               {recommendedBeers.map((beer) => (
                 <option key={beer.id} value={beer.id}>
@@ -92,7 +102,7 @@ const OrderForm = () => {
               {allBeers
                 .filter(
                   (beer) => !recommendedBeers.find((rb) => rb.id === beer.id)
-                ) // Exclude recommended beers from all beers list
+                )
                 .map((beer) => (
                   <option key={beer.id} value={beer.id}>
                     {beer.name}
