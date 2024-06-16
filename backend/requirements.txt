@@ -5,3 +5,4 @@ pydantic
 passlib
 reportlab
 bcrypt
+pytest

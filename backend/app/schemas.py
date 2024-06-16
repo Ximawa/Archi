@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Extra
 from typing import List, Optional
 from datetime import datetime
 
@@ -16,8 +16,7 @@ class BeerCreate(BeerBase):
 class Beer(BeerBase):
     id: int
 
-    class Config:
-        orm_mode = True
+    ConfigDict(from_attributes=True)
 
 
 class OrderItemBase(BaseModel):
@@ -32,8 +31,7 @@ class OrderItemCreate(OrderItemBase):
 class OrderItem(OrderItemBase):
     id: int
 
-    class Config:
-        orm_mode = True
+    ConfigDict(from_attributes=True)
 
 
 class OrderCreate(BaseModel):
@@ -45,8 +43,7 @@ class OrderSch(BaseModel):
     created_at: Optional[datetime] = None
     items: List[OrderItemBase]
 
-    class Config:
-        orm_mode = True
+    ConfigDict(from_attributes=True)
 
 
 class RoleCreate(BaseModel):
@@ -77,8 +74,7 @@ class UserSch(UserBase):
     id: Optional[int] = None
     role_id: int
 
-    class Config:
-        orm_mode = True
+    ConfigDict(from_attributes=True)
 
 
 class User(BaseModel):

@@ -3,8 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
-from app.models import User, Beer as BeerModel, Role, Order, OrderItem, SessionLocal, Base, engine
-from app.schemas import UserCreate, UserSch, BeerCreate, UserLoginAns, UserLogin, Beer, RoleSch, RoleCreate, OrderItemBase, OrderSch, OrderCreate
+from .models import User, Beer as BeerModel, Role, Order, OrderItem, SessionLocal, Base, engine
+from .schemas import UserCreate, UserSch, BeerCreate, UserLoginAns, UserLogin, Beer, RoleSch, RoleCreate, OrderItemBase, OrderSch, OrderCreate
 from passlib.context import CryptContext
 from typing import List
 from reportlab.lib.pagesizes import letter
