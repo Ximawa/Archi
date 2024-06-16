@@ -88,9 +88,10 @@ def read_beers(db: Session = Depends(get_db)):
 
 @app.post("/orders")
 def create_order(order_data: OrderCreate, db: Session = Depends(get_db)):
+    print(order_data)
     try:
         new_order = create_order_in_db(order_data, db)
-        return new_order
+        return {"order_id": new_order.id}
     except HTTPException as e:
         raise e
 
@@ -122,6 +123,14 @@ def read_low_stock_beers(db: Session = Depends(get_db)):
     return low_stock_beers
 
 
+@app.get("/order/{order_id}", response_model=OrderSch)
+def read_order(order_id: int, db: Session = Depends(get_db)):
+    order = db.query(Order).join(OrderItem).filter(
+        Order.id == order_id).first()
+
+    return order
+
+
 def create_order_in_db(order_data: OrderCreate, db: Session):
     # Create a new order instance. Assuming Order model has an 'id' and 'items' relationship
     new_order = Order()
@@ -131,14 +140,14 @@ def create_order_in_db(order_data: OrderCreate, db: Session):
 
     for item in order_data.items:
         # Check if the beer exists
-        beer = db.query(BeerModel).filter(BeerModel.id == item.beerId).first()
+        beer = db.query(BeerModel).filter(BeerModel.id == item.beer_id).first()
         if not beer:
             raise HTTPException(status_code=404, detail=f"Beer with ID {
-                                item.beerId} not found")
+                                item.beer_id} not found")
 
         # Create a new OrderItem and link it to the order and beer
         order_item = OrderItem(order_id=new_order.id,
-                               beer_id=item.beerId, quantity=item.quantity)
+                               beer_id=item.beer_id, quantity=item.quantity)
         db.add(order_item)
 
     # Commit the order items to the database

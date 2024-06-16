@@ -1,136 +1,122 @@
 import React, { useState, useEffect } from "react";
 
-function OrderForm() {
-  const [beers, setBeers] = useState([]);
+const OrderForm = () => {
+  const [orderItems, setOrderItems] = useState([{ beer_id: "", quantity: "" }]);
   const [recommendedBeers, setRecommendedBeers] = useState([]);
-  const [orderData, setOrderData] = useState([]);
+  const [allBeers, setAllBeers] = useState([]);
 
   useEffect(() => {
-    fetchAllBeers();
-    fetchRecommendedBeers();
+    fetch("http://localhost:8000/beers/low_stock")
+      .then((response) => response.json())
+      .then((data) => setRecommendedBeers(data))
+      .catch((error) =>
+        console.error("Error fetching recommended beers:", error)
+      );
+
+    fetch("http://localhost:8000/beers")
+      .then((response) => response.json())
+      .then((data) => setAllBeers(data))
+      .catch((error) => console.error("Error fetching all beers:", error));
   }, []);
 
-  const fetchAllBeers = async () => {
-    try {
-      const response = await fetch("http://localhost:8000/beers");
-      const data = await response.json();
-      setBeers(data);
-    } catch (error) {
-      console.error("Failed to fetch beers:", error);
-    }
-  };
-
-  const fetchRecommendedBeers = async () => {
-    try {
-      const response = await fetch("http://localhost:8000/beers/low_stock");
-      const data = await response.json();
-      setRecommendedBeers(data);
-    } catch (error) {
-      console.error("Failed to fetch recommended beers:", error);
-    }
-  };
-
-  const addBeerToOrder = (selectedBeer) => {
-    const existingOrderIndex = orderData.findIndex(
-      (order) => order.beerId === selectedBeer.id
-    );
-    if (existingOrderIndex === -1) {
-      setOrderData([...orderData, { beerId: selectedBeer.id, quantity: 1 }]);
+  const handleInputChange = (index, event) => {
+    const values = [...orderItems];
+    if (event.target.name === "beer_id") {
+      // Parse the beer_id as an integer, but fallback to the original string if parsing fails
+      const beerIdValue = parseInt(event.target.value, 10);
+      values[index].beer_id = isNaN(beerIdValue) ? "" : beerIdValue;
     } else {
-      // Optionally handle case where beer is already in the order
+      // Parse the quantity as an integer, fallback to 0 if parsing fails
+      const quantityValue = parseInt(event.target.value, 10);
+      values[index].quantity = isNaN(quantityValue) ? 0 : quantityValue;
     }
+    setOrderItems(values);
   };
 
-  const updateBeerQuantity = (beerId, quantity) => {
-    setOrderData(
-      orderData.map((order) => {
-        if (order.beerId === beerId) {
-          return { ...order, quantity: quantity };
-        }
-        return order;
-      })
-    );
-  };
-
-  const handleSubmit = async (event) => {
+  const handleSubmit = (event) => {
     event.preventDefault();
-    console.log("Submitting order:", JSON.stringify(orderData));
-    const submitOrder = async () => {
-      try {
-        const response = await fetch("http://localhost:8000/orders", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            orders: orderData.map((order) => ({
-              beerId: order.beerId,
-              quantity: order.quantity,
-            })),
-          }),
-        });
-        if (response.ok) {
-          console.log("Order submitted successfully");
-          // Optionally reset the order data
-          setOrderData([]);
-        } else {
-          console.error("Failed to submit order");
-        }
-      } catch (error) {
-        console.error("Failed to submit order:", error);
-      }
+    const order = {
+      items: orderItems.map((item) => ({
+        beer_id: parseInt(item.beer_id, 10),
+        quantity: parseInt(item.quantity, 10),
+      })),
     };
+    console.log(order);
+    fetch("http://localhost:8000/orders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(order),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Order submitted successfully:", data);
+        // Do something with the response data
+      })
+      .catch((error) => {
+        console.error("Error submitting order:", error);
+        // Handle the error
+      });
+  };
 
-    submitOrder();
+  const handleAddFields = () => {
+    const values = [...orderItems];
+    values.push({ beer_id: "", quantity: "" });
+    setOrderItems(values);
+  };
+
+  const handleRemoveFields = (index) => {
+    const values = [...orderItems];
+    values.splice(index, 1);
+    setOrderItems(values);
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      <div>
-        <label>Recommended Beer:</label>
-        {recommendedBeers.map((beer, index) => (
-          <button
-            key={index}
-            type="button"
-            onClick={() => addBeerToOrder(beer)}
+      {orderItems.map((item, index) => (
+        <div key={index}>
+          <select
+            name="beer_id"
+            value={item.beer_id}
+            onChange={(event) => handleInputChange(index, event)}
           >
-            {beer.name}
+            <optgroup label="Bieres en stock bas">
+              {recommendedBeers.map((beer) => (
+                <option key={beer.id} value={beer.id}>
+                  {beer.name}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="Toutes les bieres">
+              {allBeers
+                .filter(
+                  (beer) => !recommendedBeers.find((rb) => rb.id === beer.id)
+                ) // Exclude recommended beers from all beers list
+                .map((beer) => (
+                  <option key={beer.id} value={beer.id}>
+                    {beer.name}
+                  </option>
+                ))}
+            </optgroup>
+          </select>
+          <input
+            type="text"
+            name="quantity"
+            value={item.quantity}
+            onChange={(event) => handleInputChange(index, event)}
+          />
+          <button type="button" onClick={() => handleRemoveFields(index)}>
+            Remove
           </button>
-        ))}
-      </div>
-      <div>
-        <label>All Beers:</label>
-        {beers.map((beer, index) => (
-          <button
-            key={index}
-            type="button"
-            onClick={() => addBeerToOrder(beer)}
-          >
-            {beer.name}
-          </button>
-        ))}
-      </div>
-      {orderData.length > 0 && (
-        <div>
-          <h3>Order Details:</h3>
-          {orderData.map((order, index) => (
-            <div key={index}>
-              <span>{order.beerName} - Quantity: </span>
-              <input
-                type="number"
-                value={order.quantity}
-                onChange={(e) =>
-                  updateBeerQuantity(order.beerName, parseInt(e.target.value))
-                }
-                min="1"
-              />
-            </div>
-          ))}
         </div>
-      )}
+      ))}
+      <button type="button" onClick={handleAddFields}>
+        Add More
+      </button>
       <button type="submit">Submit Order</button>
     </form>
   );
-}
+};
 
 export default OrderForm;

@@ -29,6 +29,7 @@ class Order(Base):
     __tablename__ = "orders"
 
     id = Column(Integer, primary_key=True, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
     items = relationship("OrderItem", back_populates="order")
 
 

@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Optional
+from datetime import datetime
 
 
 class BeerBase(BaseModel):
@@ -20,7 +21,7 @@ class Beer(BeerBase):
 
 
 class OrderItemBase(BaseModel):
-    beerId: int
+    beer_id: int
     quantity: int
 
 
@@ -41,7 +42,8 @@ class OrderCreate(BaseModel):
 
 class OrderSch(BaseModel):
     id: Optional[int] = None
-    items: List[OrderItem]
+    created_at: Optional[datetime] = None
+    items: List[OrderItemBase]
 
     class Config:
         orm_mode = True
