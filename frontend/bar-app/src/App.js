@@ -8,7 +8,12 @@ import Logout from "./components/Logout"; // Corrected file name
 
 const App = () => {
   const userInfoString = localStorage.getItem("user");
-  const userInfo = userInfoString ? JSON.parse(userInfoString) : null;
+  var userInfo = userInfoString ? JSON.parse(userInfoString) : null;
+  if (userInfo != null && userInfo.detail === "User not found") {
+    localStorage.clear();
+    userInfo = null;
+    window.location.href = "/";
+  }
   const isAdmin = userInfo && userInfo.role_id === 1;
 
   return (

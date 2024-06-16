@@ -4,7 +4,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
 from app.models import User, Beer as BeerModel, Role, Order, OrderItem, SessionLocal, Base, engine
-from app.schemas import UserCreate, UserSch, BeerCreate, UserLogin, Beer, RoleSch, RoleCreate, OrderItemBase, OrderSch, OrderCreate
+from app.schemas import UserCreate, UserSch, BeerCreate, UserLoginAns, UserLogin, Beer, RoleSch, RoleCreate, OrderItemBase, OrderSch, OrderCreate
 from passlib.context import CryptContext
 from typing import List
 from reportlab.lib.pagesizes import letter
@@ -69,14 +69,23 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     return db_user
 
 
-@app.post("/login", response_model=UserSch)
+@app.post("/login", response_model=UserLoginAns)
 def login_user(user: UserLogin, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.username == user.username).first()
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
     if not verify_password(user.password, db_user.hashed_password):
         raise HTTPException(status_code=400, detail="Incorrect password")
-    return db_user
+    # Adjusted to match the expected response model structure of UserLoginAns
+    return {
+        "success": True,
+        "user": {
+            "id": db_user.id,
+            "username": db_user.username,
+            "email": db_user.email,
+            "role_id": db_user.role_id
+        }
+    }
 
 
 @app.get("/users", response_model=List[UserSch])
@@ -103,7 +112,6 @@ def read_beers(db: Session = Depends(get_db)):
 
 @app.post("/orders")
 def create_order(order_data: OrderCreate, db: Session = Depends(get_db)):
-    print(order_data)
     try:
         new_order = create_order_in_db(order_data, db)
         return {"order_id": new_order.id}

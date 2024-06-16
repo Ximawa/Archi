@@ -24,15 +24,23 @@ const LoginForm = () => {
         "Content-Type": "application/json",
       },
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          window.alert("Mauvais identifiants");
+        }
+        return response.json();
+      })
       .then((data) => {
-        // Save user information in local storage
-        localStorage.setItem("user", JSON.stringify(data));
-        // Redirect to home page
-        window.location.href = "/list";
+        console.log("Response data:", data); // Log the full response data
+        if (data.success) {
+          data = JSON.stringify(data.user);
+          console.log("User data:", data); // Log the user data
+          localStorage.setItem("user", data);
+          window.location.href = "/list";
+        }
       })
       .catch((error) => {
-        console.error("Error:", error);
+        console.error("There was a problem with your fetch operation:", error);
       });
     // Reset form fields
     setUsername("");

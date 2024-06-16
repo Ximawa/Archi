@@ -79,3 +79,15 @@ class UserSch(UserBase):
 
     class Config:
         orm_mode = True
+
+
+class User(BaseModel):
+    id: int
+    username: str
+    email: str
+    role_id: int
+
+
+class UserLoginAns(BaseModel):
+    success: bool
+    user: User
