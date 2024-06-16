@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import BeerDetails from "./BeerDetails";
-import NewBeerForm from "./NewBeerForm";
+import NavMenu from "./NavMenu";
 
 const BeerList = () => {
   const [beers, setBeers] = useState([]);
@@ -29,7 +29,8 @@ const BeerList = () => {
 
   return (
     <>
-      <NewBeerForm />
+      <NavMenu />
+      <h2>Beer List</h2>
       <div className="beer-list">
         {beers.map((beer) => (
           <BeerDetails

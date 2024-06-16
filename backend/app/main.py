@@ -4,7 +4,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
 from app.models import User, Beer as BeerModel, Role, Order, OrderItem, SessionLocal, Base, engine
-from app.schemas import UserCreate, User, BeerCreate, Beer, RoleCreate, Role, OrderItemBase, OrderSch, OrderCreate
+from app.schemas import UserCreate, UserSch, BeerCreate, UserLogin, Beer, RoleSch, RoleCreate, OrderItemBase, OrderSch, OrderCreate
 from passlib.context import CryptContext
 from typing import List
 from reportlab.lib.pagesizes import letter
@@ -43,7 +43,7 @@ def get_db():
         db.close()
 
 
-@app.post("/roles", response_model=Role)
+@app.post("/roles", response_model=None)
 def create_role(role: RoleCreate, db: Session = Depends(get_db)):
     db_role = Role(name=role.name)
     db.add(db_role)
@@ -52,13 +52,13 @@ def create_role(role: RoleCreate, db: Session = Depends(get_db)):
     return db_role
 
 
-@app.get("/roles", response_model=List[Role])
-def read_roles(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    roles = db.query(Role).offset(skip).limit(limit).all()
+@app.get("/roles", response_model=List[RoleSch])
+def read_roles(db: Session = Depends(get_db)):
+    roles = db.query(Role).all()
     return roles
 
 
-@app.post("/users", response_model=User)
+@app.post("/users", response_model=UserSch)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     hashed_password = get_password_hash(user.password)
     db_user = User(username=user.username, email=user.email,
@@ -69,7 +69,17 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     return db_user
 
 
-@app.get("/users", response_model=List[User])
+@app.post("/login", response_model=UserSch)
+def login_user(user: UserLogin, db: Session = Depends(get_db)):
+    db_user = db.query(User).filter(User.username == user.username).first()
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    if not verify_password(user.password, db_user.hashed_password):
+        raise HTTPException(status_code=400, detail="Incorrect password")
+    return db_user
+
+
+@app.get("/users", response_model=List[UserSch])
 def read_users(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     users = db.query(User).offset(skip).limit(limit).all()
     return users

@@ -62,7 +62,6 @@ const OrderPage = () => {
 
   return (
     <div className="order-page">
-      <h1>Passer une commande</h1>
       <form onSubmit={handleSubmit}>
         <div>
           <label>Bières recommandées</label>

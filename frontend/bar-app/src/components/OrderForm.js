@@ -80,52 +80,71 @@ const OrderForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      {orderItems.map((item, index) => (
-        <div key={index}>
-          <select
-            name="beer_id"
-            value={item.beer_id}
-            onChange={(event) => handleInputChange(index, event)}
-          >
-            <option value="" disabled>
-              Select a beer
-            </option>
-            <optgroup label="Bieres en stock bas">
-              {recommendedBeers.map((beer) => (
-                <option key={beer.id} value={beer.id}>
-                  {beer.name}
-                </option>
-              ))}
-            </optgroup>
-            <optgroup label="Toutes les bieres">
-              {allBeers
-                .filter(
-                  (beer) => !recommendedBeers.find((rb) => rb.id === beer.id)
-                )
-                .map((beer) => (
+    <>
+      <nav>
+        <ul>
+          <li>
+            <a href="/">Login</a>
+          </li>
+          <li>
+            <a href="/list">Liste des bières</a>
+          </li>
+          <li>
+            <a href="/orders">Passer une commande</a>
+          </li>
+          <li>
+            <a href="/ordersList">Liste des commandes</a>
+          </li>
+        </ul>
+      </nav>
+      <h1>Passer une commande</h1>
+      <form onSubmit={handleSubmit}>
+        {orderItems.map((item, index) => (
+          <div key={index}>
+            <select
+              name="beer_id"
+              value={item.beer_id}
+              onChange={(event) => handleInputChange(index, event)}
+            >
+              <option value="" disabled>
+                Select a beer
+              </option>
+              <optgroup label="Bieres en stock bas">
+                {recommendedBeers.map((beer) => (
                   <option key={beer.id} value={beer.id}>
                     {beer.name}
                   </option>
                 ))}
-            </optgroup>
-          </select>
-          <input
-            type="text"
-            name="quantity"
-            value={item.quantity}
-            onChange={(event) => handleInputChange(index, event)}
-          />
-          <button type="button" onClick={() => handleRemoveFields(index)}>
-            Remove
-          </button>
-        </div>
-      ))}
-      <button type="button" onClick={handleAddFields}>
-        Add More
-      </button>
-      <button type="submit">Submit Order</button>
-    </form>
+              </optgroup>
+              <optgroup label="Toutes les bieres">
+                {allBeers
+                  .filter(
+                    (beer) => !recommendedBeers.find((rb) => rb.id === beer.id)
+                  )
+                  .map((beer) => (
+                    <option key={beer.id} value={beer.id}>
+                      {beer.name}
+                    </option>
+                  ))}
+              </optgroup>
+            </select>
+            <input
+              type="text"
+              name="quantity"
+              value={item.quantity}
+              onChange={(event) => handleInputChange(index, event)}
+            />
+            <button type="button" onClick={() => handleRemoveFields(index)}>
+              Remove
+            </button>
+          </div>
+        ))}
+        <button type="button" onClick={handleAddFields}>
+          Add More
+        </button>
+        <button type="submit">Submit Order</button>
+      </form>
+    </>
   );
 };
 

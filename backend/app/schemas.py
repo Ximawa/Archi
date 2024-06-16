@@ -49,19 +49,13 @@ class OrderSch(BaseModel):
         orm_mode = True
 
 
-class RoleBase(BaseModel):
+class RoleCreate(BaseModel):
     name: str
 
 
-class RoleCreate(RoleBase):
-    pass
-
-
-class Role(RoleBase):
+class RoleSch(BaseModel):
     id: int
-
-    class Config:
-        orm_mode = True
+    name: str
 
 
 class UserBase(BaseModel):
@@ -74,8 +68,13 @@ class UserCreate(UserBase):
     role_id: int
 
 
-class User(UserBase):
-    id: int
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+
+class UserSch(UserBase):
+    id: Optional[int] = None
     role_id: int
 
     class Config:

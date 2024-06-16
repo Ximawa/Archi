@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import NavMenu from "./NavMenu";
 
 const OrderList = () => {
   const [orders, setOrders] = useState([]);
@@ -13,6 +14,7 @@ const OrderList = () => {
   return (
     <div>
       <h2>Order List</h2>
+      <NavMenu />
       <ul>
         {orders.map((order) => (
           <li key={order.id}>
