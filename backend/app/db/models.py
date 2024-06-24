@@ -1,18 +1,7 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Table, create_engine
-from sqlalchemy.orm import relationship, sessionmaker, declarative_base
-
-
-DATABASE_URL = "sqlite:///./inventaire_biere.db"  # Example database URL
-
-engine = create_engine(
-    DATABASE_URL,
-    # Required for SQLite; omit for other databases
-    connect_args={"check_same_thread": False}
-)
-
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy.orm import relationship
+from app.db.base import Base
 
 
 class Beer(Base):
