@@ -94,6 +94,7 @@ npm run start
 ### Accéder à l'application
 
 Frontend: Ouvrez http://localhost:3000 dans votre navigateur.
+
 Backend: La documentation de l'API est disponible à http://localhost:8000/docs.
 
 ### Comptes utilisateurs
