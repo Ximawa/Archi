@@ -1,7 +1,5 @@
 # ARCHITECTURE N-TIERS
 
-## Introduction
-
 ## Diagramme d'Architecture
 ![Diagramme d'Architecture](schema_archi.jpg)
 
@@ -36,7 +34,7 @@ Le backend est développé avec FastAPI et est situé dans le dossier `backend/a
 ### Data Storage
 La base de données SQLite est située dans le dossier `data`.
 
-- **.db File**: Le fichier de base de données SQLite.
+- **inventaire_biere.db**: Le fichier de données SQLite.
 
 
 ## Installation 
