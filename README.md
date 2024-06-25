@@ -37,12 +37,18 @@ La base de données SQLite est située dans le dossier `data`.
 - **inventaire_biere.db**: Le fichier de données SQLite.
 
 
-## Installation 
+## Installation et Configuration
+
+### Prérequis
+- Python 3.8+
+- Node.js
+- npm (ou yarn)
 
 Clonez le projet :
 ```
 git clone https://github.com/Ximawa/Archi.git
 ```
+
 ### BDD
 Creation de la bdd et peuplage
 ```
