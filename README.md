@@ -46,7 +46,7 @@ La base de données SQLite est située dans le dossier `data`.
 
 Clonez le projet :
 ```
-git clone https://github.com/Ximawa/Archi.git
+git clone --branch dev_1 https://github.com/Ximawa/Archi.git
 ```
 
 ### BDD
