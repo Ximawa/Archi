@@ -9,7 +9,7 @@ const NewBeerForm = () => {
   const handleSubmit = (event) => {
     event.preventDefault();
     axios
-      .post("http://localhost:8000/beers", {
+      .post("http://localhost:8000/beers/create", {
         name,
         stock: parseInt(stock),
         min_stock: parseInt(minStock),

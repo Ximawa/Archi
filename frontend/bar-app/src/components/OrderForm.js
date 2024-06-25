@@ -22,7 +22,7 @@ const OrderForm = () => {
         console.error("Error fetching recommended beers:", error)
       );
 
-    fetch("http://localhost:8000/beers")
+    fetch("http://localhost:8000/beers/read_all")
       .then((response) => response.json())
       .then((data) => setAllBeers(data))
       .catch((error) => console.error("Error fetching all beers:", error));
@@ -48,8 +48,7 @@ const OrderForm = () => {
         quantity: parseInt(item.quantity, 10),
       })),
     };
-    console.log(order);
-    fetch("http://localhost:8000/orders", {
+    fetch("http://localhost:8000/orders/create", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

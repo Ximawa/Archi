@@ -1,3 +1,4 @@
 # Ignore la database
 /data/*.db
 __pycache__/
+**/__pycache__/

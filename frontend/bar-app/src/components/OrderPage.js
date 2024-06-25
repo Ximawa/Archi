@@ -12,7 +12,7 @@ const OrderPage = () => {
 
   const fetchBeers = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/beers");
+      const response = await axios.get("http://localhost:8000/beers/read_all");
       const allBeers = response.data;
       setBeers(allBeers);
       setRecommendedBeers(
@@ -50,7 +50,7 @@ const OrderPage = () => {
       quantity: selectedBeers[beerId],
     }));
     try {
-      await axios.post("http://localhost:8000/orders", {
+      await axios.post("http://localhost:8000/orders/create", {
         items: orderItems,
       });
       setSelectedBeers({});

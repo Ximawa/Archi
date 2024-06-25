@@ -12,7 +12,7 @@ const BeerList = () => {
 
   const fetchBeers = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/beers");
+      const response = await axios.get("http://localhost:8000/beers/read_all");
       setBeers(response.data);
     } catch (error) {
       console.error("There was an error fetching the beers!", error);

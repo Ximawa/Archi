@@ -4,7 +4,7 @@ import axios from "axios";
 const BeerDetails = ({ beer, onReduceStock }) => {
   const handleReduceStock = async () => {
     try {
-      await axios.post(`http://localhost:8000/beers/${beer.id}/reduce_stock`, {
+      await axios.post(`http://localhost:8000/beers/reduce_stock/${beer.id}`, {
         ...beer,
         stock: beer.stock - 1,
       });

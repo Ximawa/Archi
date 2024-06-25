@@ -17,7 +17,7 @@ const LoginForm = () => {
 
     // Make API call to validate username and password
     // Assuming the API call returns user information in the response
-    fetch("http://localhost:8000/login", {
+    fetch("http://localhost:8000/users/login", {
       method: "POST",
       body: JSON.stringify({ username, password }),
       headers: {

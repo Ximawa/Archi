@@ -5,7 +5,7 @@ const OrderList = () => {
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:8000/orders/all")
+    fetch("http://localhost:8000/orders/read_all")
       .then((response) => response.json())
       .then((data) => setOrders(data))
       .catch((error) => console.error("Error fetching orders:", error));
@@ -19,7 +19,7 @@ const OrderList = () => {
         {orders.map((order) => (
           <li key={order.id}>
             <a
-              href={`http://127.0.0.1:8000/order-pdf/${order.id}`}
+              href={`http://127.0.0.1:8000/orders/pdf/${order.id}`}
               target="_blank"
               rel="noopener noreferrer"
             >

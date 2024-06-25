@@ -6,7 +6,7 @@ const RecommendBeers = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:8000/beers/recommend")
+      .get("http://localhost:8000/beers/low_stock")
       .then((response) => setBeers(response.data))
       .catch((error) =>
         console.error(
